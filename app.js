@@ -3,12 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Post = require('./postModel');
 
-// Connect to MongoDB
-//  mongoose.connect('mongodb://localhost:27017/user').then((you)=>{
-//     console.log('connected', you);
-// }).catch((man)=> {
-//     console.log('were are you 2', man);
-// })
 
 mongoose.connect('mongodb://0.0.0.0:27017/user').then(res=>{
     console.log('Connected to MongoDB');
@@ -30,15 +24,29 @@ app.post('/posts', async (req, res) => {
     }
 });
 
-// Get all posts
-app.get('/posts', async (req, res) => {
+// Get all posts or a specific post by ID
+app.get('/posts/:id?', async (req, res) => {
     try {
-        const posts = await Post.find();
-        res.json(posts);
+        const postId = req.params.id;
+        
+        if (postId) {
+            const post = await Post.findById(postId);
+            
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' });
+            }
+            
+            return res.json(post);
+        } else {
+            const posts = await Post.find();
+            return res.json(posts);
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
+
 
 // Update a post by ID
 app.put('/posts/:id', async (req, res) => {
